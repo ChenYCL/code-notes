@@ -2,50 +2,56 @@ name: CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   release:
-    types:
-      - created
+    types: [created]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
 
-  package:
-    needs: build
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-      - run: npm run compile
-      - name: Package Extension
-        run: npx vsce package
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vsix-package
-          path: "*.vsix"
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 'lts/*'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Compile
+      run: npm run compile
+
+    - name: Package Extension
+      run: npm run package
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: vsix-package
+        path: "*.vsix"
 
   publish:
     if: github.event_name == 'release' && github.event.action == 'created'
-    needs: package
+    needs: build
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-      - name: Publish to Visual Studio Marketplace
-        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 'lts/*'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Publish to Visual Studio Marketplace
+      run: npm run publish
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
