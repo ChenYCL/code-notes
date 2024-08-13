@@ -43,16 +43,6 @@ jobs:
         fi
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
-    - name: Publish to Visual Studio Marketplace
-      run: |
-        if [ -z "$VSCE_PAT" ]; then
-          echo "Error: VSCE_PAT is empty"
-          exit 1
-        else
-          vsce publish
-        fi
-      env:
-        VSCE_PAT: ${{ secrets.VSCE_PAT }}
     
     - name: Publish to Visual Studio Marketplace
       run: |
