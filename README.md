@@ -1,5 +1,21 @@
 # easy-code-notes
 
+<p align="center">
+  <img src="resources/icon.png" alt="Code Notes Logo" width="200" height="200">
+</p>
+
+<p align="center">
+  <a href="https://github.com/ChenYCL/code-notes/stargazers">
+    <img src="https://img.shields.io/github/stars/ChenYCL/code-notes" alt="Stars">
+  </a>
+  <a href="https://github.com/ChenYCL/code-notes/network/members">
+    <img src="https://img.shields.io/github/forks/ChenYCL/code-notes" alt="Forks">
+  </a>
+  <a href="https://github.com/ChenYCL/code-notes/issues">
+    <img src="https://img.shields.io/github/issues/ChenYCL/code-notes" alt="Issues">
+  </a>
+</p>
+
 Code Notes is a VSCode extension that allows you to add notes to your code without using comments.
 
 ## Features
@@ -21,6 +37,10 @@ Code Notes is a VSCode extension that allows you to add notes to your code witho
 3. Press F5 to start debugging
 4. Make changes to the code
 5. Run the "Reload Code Notes Extension" command to see your changes
+
+## History
+
+This project was started to improve code documentation and collaboration. It has evolved to become a powerful tool for developers to add context to their code without cluttering it with comments.
 
 ## License
 
