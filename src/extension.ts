@@ -3,7 +3,7 @@ import { NoteProvider } from "./noteProvider";
 import { NoteTreeView, NoteItem } from "./noteTreeView";
 import { Note } from "./types";
 
-let activeNotes: Map<
+export let activeNotes: Map<
   string,
   Map<string, { range: vscode.Range; content: string }>
 > = new Map();
@@ -31,9 +31,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   noteProvider.setTreeView(treeView, noteTreeView);
 
-  // 注册全局的 HoverProvider
   const hoverProvider = vscode.languages.registerHoverProvider(
     { scheme: "file" },
+
     {
       provideHover(document, position, token) {
         const fileName = document.uri.fsPath;
@@ -41,7 +41,10 @@ export function activate(context: vscode.ExtensionContext) {
         if (fileNotes) {
           for (const [key, value] of fileNotes) {
             if (value.range.contains(position)) {
-              return new vscode.Hover(value.content);
+              const latestNote = noteProvider.getNoteById(fileName, key);
+              if (latestNote) {
+                return new vscode.Hover(latestNote.content);
+              }
             }
           }
         }
@@ -81,12 +84,21 @@ export function activate(context: vscode.ExtensionContext) {
               cancellable: false,
             },
             async (progress) => {
-              await new Promise((resolve) => setTimeout(resolve, 2000));
+              await new Promise((resolve) => setTimeout(resolve, 500));
             }
           );
         }
       } else {
         vscode.window.showErrorMessage("No active text editor");
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      const fileName = event.document.uri.fsPath;
+      if (noteProvider.getNotes().has(fileName)) {
+        noteProvider.updateActiveNotes(fileName);
       }
     })
   );
@@ -114,7 +126,7 @@ export function activate(context: vscode.ExtensionContext) {
                 cancellable: false,
               },
               async (progress) => {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
+                await new Promise((resolve) => setTimeout(resolve, 500));
               }
             );
           } else {
@@ -160,7 +172,7 @@ export function activate(context: vscode.ExtensionContext) {
           // remove decoration after 5 seconds
           setTimeout(() => {
             editor.setDecorations(decorationType, []);
-          }, 5000);
+          }, 1500);
         } catch (error) {
           console.error("Error opening note:", error);
           vscode.window.showErrorMessage(
@@ -177,119 +189,6 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  //   context.subscriptions.push(
-  //     vscode.window.registerCustomEditorProvider(
-  //       "codeNotes.noteEditor",
-  //       new (class implements vscode.CustomTextEditorProvider {
-  //         resolveCustomTextEditor(
-  //           document: vscode.TextDocument,
-  //           webviewPanel: vscode.WebviewPanel,
-  //           _token: vscode.CancellationToken
-  //         ): void | Thenable<void> {
-  //           webviewPanel.webview.options = {
-  //             enableScripts: true,
-  //           };
-  //           webviewPanel.webview.html = this.getHtmlForWebview(
-  //             webviewPanel.webview,
-  //             document.getText()
-  //           );
-
-  //           const updateWebview = () => {
-  //             webviewPanel.webview.postMessage({
-  //               type: "update",
-  //               text: document.getText(),
-  //             });
-  //           };
-
-  //           const changeDocumentSubscription =
-  //             vscode.workspace.onDidChangeTextDocument((e) => {
-  //               if (e.document.uri.toString() === document.uri.toString()) {
-  //                 updateWebview();
-  //               }
-  //             });
-
-  //           webviewPanel.onDidDispose(() => {
-  //             changeDocumentSubscription.dispose();
-  //           });
-
-  //           webviewPanel.webview.onDidReceiveMessage((e) => {
-  //             switch (e.type) {
-  //               case "edit":
-  //                 this.updateTextDocument(document, e.content);
-  //                 return;
-  //             }
-  //           });
-
-  //           updateWebview();
-  //         }
-
-  //         private getHtmlForWebview(
-  //           webview: vscode.Webview,
-  //           content: string
-  //         ): string {
-  //           return `
-  //             <!DOCTYPE html>
-  //             <html lang="en">
-  //             <head>
-  //                 <meta charset="UTF-8">
-  //                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  //                 <title>Code Note Editor</title>
-  //                 <style>
-  //                     body {
-  //                         font-family: Arial, sans-serif;
-  //                         padding: 10px;
-  //                     }
-  //                     #editor {
-  //                         width: 100%;
-  //                         height: 300px;
-  //                         border: 1px solid #ccc;
-  //                         padding: 5px;
-  //                     }
-  //                 </style>
-  //             </head>
-  //             <body>
-  //                 <textarea id="editor">${content}</textarea>
-  //                 <script>
-  //                     const vscode = acquireVsCodeApi();
-  //                     const editor = document.getElementById('editor');
-  //                     editor.addEventListener('input', () => {
-  //                         vscode.postMessage({
-  //                             type: 'edit',
-  //                             content: editor.value
-  //                         });
-  //                     });
-  //                     window.addEventListener('message', event => {
-  //                         const message = event.data;
-  //                         switch (message.type) {
-  //                             case 'update':
-  //                                 editor.value = message.text;
-  //                                 break;
-  //                         }
-  //                     });
-  //                 </script>
-  //             </body>
-  //             </html>
-  //           `;
-  //         }
-
-  //         private updateTextDocument(
-  //           document: vscode.TextDocument,
-  //           content: string
-  //         ) {
-  //           const edit = new vscode.WorkspaceEdit();
-  //           edit.replace(
-  //             document.uri,
-  //             new vscode.Range(0, 0, document.lineCount, 0),
-  //             content
-  //           );
-  //           vscode.workspace.applyEdit(edit);
-  //         }
-  //       })(),
-  //       {
-  //         supportsMultipleEditorsPerDocument: false,
-  //       }
-  //     )
-  //   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "code-notes.openNoteEditor",
@@ -311,112 +210,6 @@ export function activate(context: vscode.ExtensionContext) {
       }
     )
   );
-
-  //   context.subscriptions.push(
-  //     vscode.window.registerCustomEditorProvider(
-  //       "codeNotes.noteEditor",
-  //       new (class implements vscode.CustomTextEditorProvider {
-  //         async resolveCustomTextEditor(
-  //           document: vscode.TextDocument,
-  //           webviewPanel: vscode.WebviewPanel,
-  //           _token: vscode.CancellationToken
-  //         ): Promise<void> {
-  //           const noteId = new URLSearchParams(document.uri.query).get("noteId");
-
-  //           let content = "";
-  //           if (noteId) {
-  //             const note = await noteProvider.getNoteById(noteId);
-  //             if (note) {
-  //               content = note.content;
-  //             }
-  //           }
-
-  //           webviewPanel.webview.options = {
-  //             enableScripts: true,
-  //           };
-  //           webviewPanel.webview.html = this.getHtmlForWebview(
-  //             webviewPanel.webview,
-  //             content
-  //           );
-
-  //           const updateWebview = () => {
-  //             webviewPanel.webview.postMessage({
-  //               type: "update",
-  //               text: content,
-  //             });
-  //           };
-
-  //           webviewPanel.webview.onDidReceiveMessage((e) => {
-  //             switch (e.type) {
-  //               case "edit":
-  //                 content = e.content;
-  //                 if (noteId) {
-  //                   noteProvider.updateNoteContent(noteId, content);
-  //                 }
-  //                 return;
-  //             }
-  //           });
-
-  //           updateWebview();
-  //         }
-
-  //         private getHtmlForWebview(
-  //           webview: vscode.Webview,
-  //           content: string
-  //         ): string {
-  //           return `
-  //             <!DOCTYPE html>
-  //             <html lang="en">
-  //             <head>
-  //                 <meta charset="UTF-8">
-  //                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  //                 <title>Code Note Editor</title>
-  //                 <style>
-  //                     body {
-  //                         font-family: Arial, sans-serif;
-  //                         padding: 10px;
-  //                     }
-  //                     #editor {
-  //                         width: 100%;
-  //                         height: 300px;
-  //                         border: 1px solid #ccc;
-  //                         padding: 5px;
-  //                     }
-  //                 </style>
-  //             </head>
-  //             <body>
-  //                 <textarea id="editor">${content}</textarea>
-  //                 <script>
-  //                     const vscode = acquireVsCodeApi();
-  //                     const editor = document.getElementById('editor');
-  //                     editor.addEventListener('input', () => {
-  //                         vscode.postMessage({
-  //                             type: 'edit',
-  //                             content: editor.value
-  //                         });
-  //                     });
-  //                     window.addEventListener('message', event => {
-  //                         const message = event.data;
-  //                         switch (message.type) {
-  //                             case 'update':
-  //                                 editor.value = message.text;
-  //                                 break;
-  //                         }
-  //                     });
-  //                 </script>
-  //             </body>
-  //             </html>
-  //           `;
-  //         }
-  //       })(),
-  //       {
-  //         supportsMultipleEditorsPerDocument: false,
-  //         webviewOptions: {
-  //           retainContextWhenHidden: true,
-  //         },
-  //       }
-  //     )
-  //   );
 
   context.subscriptions.push(
     vscode.window.registerCustomEditorProvider(

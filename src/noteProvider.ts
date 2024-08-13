@@ -4,6 +4,7 @@ import * as crypto from "crypto";
 import { NoteTreeView } from "./noteTreeView";
 import * as fs from "fs";
 import * as path from "path";
+import { activeNotes } from "./extension";
 
 export class NoteProvider {
   private notes: Map<string, NoteFile> = new Map();
@@ -28,7 +29,29 @@ export class NoteProvider {
     this.loadNotes();
   }
 
-  async getNoteById(filePath: string, id: string): Promise<Note | undefined> {
+  updateActiveNotes(fileName: string) {
+    const noteFile = this.notes.get(fileName);
+    if (noteFile) {
+      if (!activeNotes.has(fileName)) {
+        activeNotes.set(fileName, new Map());
+      }
+      const fileNotes = activeNotes.get(fileName)!;
+      fileNotes.clear();
+      for (const note of noteFile.notes) {
+        const range = new vscode.Range(
+          note.startLine,
+          note.startCharacter,
+          note.endLine,
+          note.endCharacter
+        );
+        fileNotes.set(note.id, { range, content: note.content });
+      }
+    } else {
+      activeNotes.delete(fileName);
+    }
+  }
+
+  getNoteById(filePath: string, id: string): Note | undefined {
     const noteFile = this.notes.get(filePath);
     if (noteFile) {
       return noteFile.notes.find((note) => note.id === id);
@@ -48,6 +71,7 @@ export class NoteProvider {
         noteFile.notes[noteIndex].content = content;
         noteFile.version += 1;
         await this.saveNotes();
+        this.updateActiveNotes(filePath);
         this.refreshTreeView();
       }
     }
@@ -100,32 +124,23 @@ export class NoteProvider {
   }
 
   async deleteNote(fileName: string, noteId: string): Promise<boolean> {
-    console.log(
-      `Attempting to delete note with id ${noteId} from file ${fileName}`
-    );
     const noteFile = this.notes.get(fileName);
-    console.log("Current note file:", noteFile);
     if (noteFile) {
       const initialLength = noteFile.notes.length;
       noteFile.notes = noteFile.notes.filter((note) => note.id !== noteId);
-      console.log(`Notes after filter: ${noteFile.notes.length}`);
       if (noteFile.notes.length < initialLength) {
         if (noteFile.notes.length === 0) {
-          console.log(
-            `Deleting file ${fileName} from notes as it has no more notes`
-          );
           this.notes.delete(fileName);
         } else {
           noteFile.version += 1;
           noteFile.fileHash = await this.calculateFileHash(fileName);
         }
         await this.saveNotes();
+        this.updateActiveNotes(fileName);
         this.refreshTreeView();
-        console.log("Note deleted successfully");
         return true;
       }
     }
-    console.log("Note not found or already deleted");
     return false;
   }
 
