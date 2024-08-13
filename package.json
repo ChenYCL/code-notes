@@ -4,6 +4,7 @@
   "description": "Add notes to your code without comments",
   "version": "0.0.1",
   "publisher": "FasterLight",
+  "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.60.0"
   },
