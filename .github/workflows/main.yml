@@ -28,7 +28,28 @@ jobs:
     - name: Package extension
       run: vsce package
 
+    - name: Check vsce installation
+      run: |
+        which vsce
+        vsce --version
+
+    - name: Debug - Check PAT
+      run: |
+        if [ -n "$VSCE_PAT" ]; then
+          echo "VSCE_PAT is set and not empty"
+        else
+          echo "VSCE_PAT is empty or not set"
+        fi
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+    
     - name: Publish to Visual Studio Marketplace
-      run: vsce publish -p ${{ secrets.VSCE_PAT }}
+      run: |
+        if [ -z "$VSCE_PAT" ]; then
+          echo "Error: VSCE_PAT is empty"
+          exit 1
+        else
+          vsce publish
+        fi
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
