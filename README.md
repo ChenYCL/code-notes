@@ -5,6 +5,13 @@
 </p>
 
 <p align="center">
+  <video controls width="1024" height="768">
+    <source src="resources/sample.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</p>
+
+<p align="center">
   <a href="https://github.com/ChenYCL/code-notes/stargazers">
     <img src="https://img.shields.io/github/stars/ChenYCL/code-notes" alt="Stars">
   </a>
