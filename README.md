@@ -1,4 +1,4 @@
-# Code Notes
+# easy-code-notes
 
 Code Notes is a VSCode extension that allows you to add notes to your code without using comments.
 
