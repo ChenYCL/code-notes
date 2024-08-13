@@ -1,0 +1,56 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: npm ci
+      - run: npm run compile
+      - name: Package Extension
+        run: npx vsce package
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vsix-package
+          path: "*.vsix"
+
+  publish:
+    if: github.event_name == 'release' && github.event.action == 'created'
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: npm ci
+      - name: Publish to Visual Studio Marketplace
+        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
