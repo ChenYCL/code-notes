@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "publisher": "FasterLight",
   "engines": {
-    "vscode": "^1.8.0"
+    "vscode": "^1.60.0"
   },
   "repository": {
     "type": "git",
