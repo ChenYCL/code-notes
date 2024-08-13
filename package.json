@@ -2,7 +2,7 @@
   "name": "easy-code-notes",
   "displayName": "Code Notes",
   "description": "Add notes to your code without comments",
-  "version": "0.0.1",
+  "version": "1.0",
   "publisher": "FasterLight",
   "icon": "resources/icon.png",
   "engines": {
