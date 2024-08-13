@@ -4,12 +4,7 @@
   <img src="resources/icon.png" alt="Code Notes Logo" width="200" height="200">
 </p>
 
-<p align="center">
-  <video controls width="1024" height="768">
-    <source src="resources/sample.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-</p>
+https://github.com/user-attachments/assets/6edb9582-c056-491c-b804-522a4d5c9073
 
 <p align="center">
   <a href="https://github.com/ChenYCL/code-notes/stargazers">
