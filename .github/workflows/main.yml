@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '20.x'                
-  PNPM_VERSION: 8                     
+  NODE_VERSION: '20.x'               
 
 jobs:
   build-and-publish:
@@ -19,33 +18,16 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: ${{ env.PNPM_VERSION }}
-
-    - name: Get pnpm store directory
-      shell: bash
-      run: |
-        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-    - uses: actions/cache@v3
-      name: Setup pnpm cache
-      with:
-        path: ${{ env.STORE_PATH }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-pnpm-store-
+        cache: 'yarn'
 
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile --if-present
+      run: yarn install --frozen-lockfile
 
     - name: Install vsce
-      run: pnpm add -g @vscode/vsce
+      run: yarn global add @vscode/vsce
 
     - name: Build extension
-      run: pnpm run build --if-present
+      run: yarn run build --if-present
 
     - name: Package extension
       run: vsce package
