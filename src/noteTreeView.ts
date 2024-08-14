@@ -41,7 +41,7 @@ export class NoteTreeView implements vscode.TreeDataProvider<NoteItem> {
 
   private createNoteItem(fileUri: vscode.Uri, note: Note): NoteItem {
     return new NoteItem(
-      `${this.formatRange(note)}: ${note.content.substring(0, 30)}...`,
+      `${note.content.substring(0, 30)}...`,
       vscode.TreeItemCollapsibleState.None,
       {
         command: "code-notes.openNote",
