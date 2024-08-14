@@ -32,6 +32,8 @@ https://github.com/user-attachments/assets/6edb9582-c056-491c-b804-522a4d5c9073
 
 ## Usage
 
+[install](https://marketplace.visualstudio.com/items?itemName=FasterLight.easy-code-notes)
+
 1. Right-click on a line of code and select "Add Code Note"
 2. Enter your note in the input box
 3. View your notes in the Code Notes view in the Explorer sidebar
